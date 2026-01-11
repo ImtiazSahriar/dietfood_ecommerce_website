@@ -189,7 +189,7 @@ class PlaceOrderAPIView(APIView):
 
     @transaction.atomic
     def post(self, request):
-        # 1️⃣ Get active cart
+        # Get active cart
         try:
             cart = Cart.objects.get(user=request.user, is_active=True)
         except Cart.DoesNotExist:
@@ -200,14 +200,14 @@ class PlaceOrderAPIView(APIView):
 
         cart_items = cart.items.all()
 
-        # 2️⃣ Check empty cart
+        # Check empty cart
         if not cart_items.exists():
             return Response(
                 {"detail": "Cart is empty"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # 3️⃣ Create order (temporary total 0)
+        # Create order (temporary total 0)
         order = Order.objects.create(
             user=request.user,
             total_amount=0,
@@ -216,7 +216,7 @@ class PlaceOrderAPIView(APIView):
 
         total_amount = 0
 
-        # 4️⃣ Create order items
+        # Create order items
         for item in cart_items:
             OrderItem.objects.create(
                 order=order,
@@ -226,11 +226,11 @@ class PlaceOrderAPIView(APIView):
             )
             total_amount += item.price * item.quantity
 
-        # 5️⃣ Update total amount
+        # Update total amount
         order.total_amount = total_amount
         order.save()
 
-        # 6️⃣ Deactivate cart
+        # Deactivate cart
         cart.is_active = False
         cart.save()
 
